@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Libros API</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        #contenedorTablas {
+            display: flex;
+            align-items: flex-start;
+            width: 80%;
+        }
+
+        #autores, #tablaLibros {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px;
+        }
+
+        #autores p, #cuerpoTablaLibros td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            margin: 5px;
+        }
+
+        #autores h2 {
+            margin-bottom: 10px;
+        }
+
+        #busquedaInput {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Libreria del siglo XXI</h1>
+<h4>Listado de libros</h4>
+<div>
+    <label for="busquedaInput">Buscar:</label>
+    <input type="text" id="busquedaInput" placeholder="Ingrese término de búsqueda">
+    <button onclick="realizarBusqueda()">Buscar</button>
+</div>
+
+<div id="contenedorTablas">
+    <div id="autores">
+        <h2>Autores</h2>
+    </div>
+
+    <table id="tablaLibros">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Capítulos</th>
+                <th>Páginas</th>
+                <th>Precio</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpoTablaLibros"></tbody>
+    </table>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    obtenerAutores();
+    obtenerLibros();
+});
+
+function obtenerAutores() {
+    const apiUrl = 'https://localhost:44391/api/Author';
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Autores:', data);
+            
+            // Obtener la referencia al div de autores
+            const divAutores = document.getElementById('autores');
+
+            // Agregar título de autores
+            const tituloAutores = document.createElement('h2');
+
+            // Iterar sobre los autores y agregar sus nombres al div
+            data.forEach(autor => {
+                const nombreAutor = document.createElement('p');
+                nombreAutor.textContent = autor.name;
+                divAutores.appendChild(nombreAutor);
+            });
+        })
+        .catch(error => console.error('Error al obtener autores:', error));
+}
+
+function obtenerLibros() {
+    const apiUrl = 'https://localhost:44391/api/Libros';
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Libros:', data);
+            
+            // Obtener la referencia a la tabla y su cuerpo
+            const tablaLibros = document.getElementById('cuerpoTablaLibros');
+
+            // Iterar sobre los libros y agregar filas a la tabla
+            data.forEach(libro => {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${libro.title}</td>
+                    <td>${libro.chapters}</td>
+                    <td>${libro.pages}</td>
+                    <td>${libro.price}</td>
+                `;
+                tablaLibros.appendChild(fila);
+            });
+        })
+        .catch(error => console.error('Error al obtener libros:', error));
+}
+
+function realizarBusqueda() {
+    const terminoBusqueda = document.getElementById('busquedaInput').value.toLowerCase();
+
+    // Limpiar tablas
+    document.getElementById('autores').innerHTML = '<h2>Autores</h2>';
+    document.getElementById('cuerpoTablaLibros').innerHTML = '';
+
+    // Realizar búsqueda de autores
+    fetch('https://localhost:44391/api/Author')
+        .then(response => response.json())
+        .then(data => {
+            const divAutores = document.getElementById('autores');
+
+            data.forEach(autor => {
+                const nombreAutor = autor.name.toLowerCase();
+                if (nombreAutor.includes(terminoBusqueda)) {
+                    const p = document.createElement('p');
+                    p.textContent = autor.name;
+                    divAutores.appendChild(p);
+                }
+            });
+        })
+        .catch(error => console.error('Error al realizar búsqueda de autores:', error));
+
+    // Realizar búsqueda de libros
+    fetch('https://localhost:44391/api/Libros')
+        .then(response => response.json())
+        .then(data => {
+            const tablaLibros = document.getElementById('cuerpoTablaLibros');
+
+            data.forEach(libro => {
+                const tituloLibro = libro.title.toLowerCase();
+                if (tituloLibro.includes(terminoBusqueda)) {
+                    const fila = document.createElement('tr');
+                    fila.innerHTML = `
+                        <td>${libro.title}</td>
+                        <td>${libro.chapters}</td>
+                        <td>${libro.pages}</td>
+                        <td>${libro.price}</td>
+                    `;
+                    tablaLibros.appendChild(fila);
+                }
+            });
+        })
+        .catch(error => console.error('Error al realizar búsqueda de libros:', error));
+}
+</script>
+
+</body>
+</html>
